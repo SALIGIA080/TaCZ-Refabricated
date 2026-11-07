@@ -126,8 +126,12 @@ This port would not exist without the following projects and contributors (order
   `0.7.0-forge1.1.8-hotfix`），本移植的源码**格式**与授权链参照（包名 `cn.sh1rocu` 即源于此）。
   The 1.21.1 Fabric port (`0.7.0-forge1.1.8-hotfix`); this port references its source **layout** and license chain
   (the package name `cn.sh1rocu` originates here).
-- **[SimpleBedrockModel](https://github.com/MCModderAnchor/SimpleBedrockModel)** —— 基岩模型/动画渲染库（jar-in-jar 内嵌）。
-  Bedrock model/animation rendering library (bundled jar-in-jar).
+- **[SimpleBedrockModel（26.2 移植）](https://github.com/SALIGIA080/SimpleBedrockModel)** —— 基岩模型/动画渲染库（jar-in-jar 内嵌）。
+  其上游为官方 [MCModderAnchor/SimpleBedrockModel](https://github.com/MCModderAnchor/SimpleBedrockModel)（LGPL-3.0），
+  完整授权链见 [LICENSES.md](LICENSES.md)。
+  Bedrock model/animation rendering library (bundled jar-in-jar). Its upstream is the official
+  [MCModderAnchor/SimpleBedrockModel](https://github.com/MCModderAnchor/SimpleBedrockModel) (LGPL-3.0); see
+  [LICENSES.md](LICENSES.md) for the full license chain.
 - **[MaydayAnimationEngine](https://github.com/286799714/MaydayAnimationEngine)** —— 动画关键帧基础设施（MIT），
   随官方 TACZ 源码链带入的上游依赖。
   Animation keyframe infrastructure (MIT), an upstream dependency inherited via the official TACZ source chain.
