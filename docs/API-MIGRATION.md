@@ -13,7 +13,7 @@
 - 本移植以官方 **1.2.0 正式版**为基线（NeoForge 1.21.1 / Forge 1.20.1）。
 - 镜片窗口（Scope Lens）以官方 1.2.0（`MCModderAnchor/TACZ` `1.21.1` 分支）为 1:1 基准。
 - 移植过程**参照最多**的是 [q14433686-arch/TaCZ_Refabricated_Unofficial](https://github.com/q14433686-arch/TaCZ_Refabricated_Unofficial)
-  的 26.2 Fabric 非官方移植（内置 TML 高模渲染，作者 VellEagle）；本移植将其高模渲染库由 TML 替换为 SimpleBedrockModel。
+  的 26.2 Fabric 非官方移植（内置 TML 高模渲染，作者 VellEagle）；本移植将其高模渲染库由 TML 替换为 [SimpleBedrockModel](https://github.com/SALIGIA080/SimpleBedrockModel)。
 - 早期源码**格式**与授权链参照 [Sh1roCu/TACZ-Refabricated](https://github.com/Sh1roCu/TACZ-Refabricated)
   （1.21.1 Fabric，版本号 `0.7.0-forge1.1.8-hotfix`，包名 `cn.sh1rocu` 源于此）。
 - 许可证：**GPL-3.0**（与官方一致；默认枪包美术资源另有 CC BY-NC-ND 4.0，见 `LICENSES.md`）。
