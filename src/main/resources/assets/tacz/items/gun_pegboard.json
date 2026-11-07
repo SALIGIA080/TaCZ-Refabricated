@@ -1,0 +1,21 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "property": "tacz:dyed",
+    "cases": [
+      {
+        "when": [
+          1
+        ],
+        "model": {
+          "type": "minecraft:model",
+          "model": "tacz:block/gun_pegboard_dyed"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "tacz:block/gun_pegboard"
+    }
+  }
+}

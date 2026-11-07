@@ -1,0 +1,38 @@
+package com.tacz.guns.client.input;
+
+import com.mojang.blaze3d.platform.InputConstants;
+import com.tacz.guns.api.client.gameplay.IClientPlayerGunOperator;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.minecraft.client.KeyMapping;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
+import org.lwjgl.glfw.GLFW;
+
+import static com.tacz.guns.util.InputExtraCheck.isInGame;
+
+@Environment(EnvType.CLIENT)
+public class InspectKey {
+    public static final KeyMapping INSPECT_KEY = new KeyMapping("key.tacz.inspect.desc",
+            InputConstants.Type.KEYSYM,
+            GLFW.GLFW_KEY_H,
+            TaCZKeyCategory.TACZ);
+
+    public static boolean onInspectPress() {
+        if (isInGame()) {
+            LocalPlayer player = Minecraft.getInstance().player;
+            if (player != null && !player.isSpectator()) {
+                IClientPlayerGunOperator.fromLocalPlayer(player).inspect();
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    public static boolean onInspectControllerPress(boolean isPress) {
+        return isPress && onInspectPress();
+    }
+}

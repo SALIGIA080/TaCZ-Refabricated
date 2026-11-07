@@ -1,0 +1,199 @@
+package com.tacz.guns.client.model.functional;
+
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.tacz.guns.api.TimelessAPI;
+import com.tacz.guns.api.item.IAttachment;
+import com.tacz.guns.api.item.attachment.AttachmentType;
+import com.tacz.guns.client.model.BedrockAttachmentModel;
+import com.tacz.guns.client.model.BedrockGunModel;
+import com.tacz.guns.client.model.IFunctionalSubmitter;
+import com.tacz.guns.client.renderer.item.AttachmentItemRenderer;
+import com.tacz.guns.client.renderer.item.ItemPreviewRenderContext;
+import com.tacz.guns.client.resource.index.ClientAttachmentVariantIndex;
+import com.tacz.guns.client.resource.index.ClientSlotAdapterIndex;
+import com.tacz.guns.util.RenderDistance;
+import com.tacz.guns.util.SlotAdapterHelper;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.client.renderer.texture.MissingTextureAtlasSprite;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.world.item.ItemStack;
+import org.apache.commons.lang3.tuple.Pair;
+import org.joml.Vector3f;
+
+
+public class AttachmentRender implements IFunctionalSubmitter {
+    private final BedrockGunModel bedrockGunModel;
+    private final AttachmentType type;
+
+    public AttachmentRender(BedrockGunModel bedrockGunModel, AttachmentType type) {
+        this.bedrockGunModel = bedrockGunModel;
+        this.type = type;
+    }
+
+
+
+    public static void submitAttachment(ItemStack attachmentItem,
+                                        ItemStack gunItem,
+                                        AttachmentType type,
+                                        PoseStack poseStack,
+                                        ItemDisplayContext transformType,
+                                        SubmitNodeCollector collector,
+                                        int light,
+                                        int overlay) {
+        poseStack.translate(0, -1.5, 0);
+        if (!(attachmentItem.getItem() instanceof IAttachment iAttachment)) {
+            return;
+        }
+        Identifier attachmentId = iAttachment.getAttachmentId(attachmentItem);
+        TimelessAPI.getClientAttachmentIndex(attachmentId).ifPresentOrElse(attachmentIndex -> {
+            BedrockAttachmentModel model = attachmentIndex.getAttachmentModel();
+            Identifier texture = attachmentIndex.getModelTexture();
+
+            // 【0929 delta】配件变体（replace mode）：整体替换模型与贴图
+            ClientAttachmentVariantIndex variant = TimelessAPI.getClientAttachmentVariantIndex(attachmentItem).orElse(null);
+            if (variant != null && variant.isReplaceMode() && variant.getAttachmentModel() != null && variant.getModelTexture() != null) {
+                model = variant.getAttachmentModel();
+                texture = variant.getModelTexture();
+            }
+
+            // 【0929 delta】槽位适配器：先渲染适配器模型，再应用其挂载偏移
+            ClientSlotAdapterIndex slotAdapter = getSlotAdapter(gunItem, type, attachmentId);
+            if (slotAdapter != null) {
+                poseStack.pushPose();
+                submitSlotAdapter(slotAdapter, gunItem, poseStack, transformType, collector, light, overlay);
+                poseStack.popPose();
+                applyMountOffset(poseStack, slotAdapter.getMountOffset());
+            }
+
+            // 【0929 delta】配件变体（overlay mode）：叠加渲染变体模型 + 挂载偏移
+            if (variant != null && variant.isOverlayMode()) {
+                submitVariantOverlay(variant, attachmentItem, gunItem, poseStack, transformType, collector, light, overlay);
+                applyMountOffset(poseStack, variant.getMountOffset());
+            }
+
+            if (model != null && texture != null) {
+                Pair<BedrockAttachmentModel, Identifier> lodModel = attachmentIndex.getLodModel();
+                if (lodModel != null && !RenderDistance.inRenderHighPolyModelDistance(poseStack) && !transformType.firstPerson()) {
+                    model = lodModel.getLeft();
+                    texture = lodModel.getRight();
+                }
+                // 多传一个 texture：瞄具镜身可能要换成「被目镜掩码裁剪」的 RenderType，
+                // 而那需要按贴图构造。model 内部会自行判断要不要用（见 resolveBodyRenderType）。
+                RenderType bodyType = RenderTypes.entityCutout(texture);
+                // 【镜内裁切 · 非瞄具配件】「透视瞄具」成立的条件是目镜投影内一切视模像素
+                // 都 discard（颜色+深度都不写），否则镜片里看得见护木/激光盒等穿过镜面。
+                // 瞄具自身的镜身裁剪在 BedrockAttachmentModel 内部处理；这里给其余配件
+                // （握把/枪口/激光盒…）接上同一张掩码。不满足条件时原样返回 entityCutout。
+                bodyType = com.tacz.guns.client.render.scope.ScopeBodyRenderTypes.clipForViewmodel(
+                        bodyType, texture, transformType.firstPerson());
+                // 【0929 delta】预览态（展示柜/挂钩陈列）用 translucent 半透明
+                if (ItemPreviewRenderContext.isPreview()) {
+                    bodyType = RenderTypes.entityTranslucent(texture);
+                }
+                model.submit(attachmentItem, gunItem, poseStack, transformType, collector,
+                        bodyType, texture, light, overlay);
+            }
+        }, () -> collector.submitCustomGeometry(
+                poseStack,
+                RenderTypes.entityTranslucent(MissingTextureAtlasSprite.getLocation()),
+                (pose, buffer) -> AttachmentItemRenderer.SLOT_ATTACHMENT_MODEL.renderToBuffer(
+                        poseStack, buffer, light, overlay, 1.0F, 1.0F, 1.0F, ItemPreviewRenderContext.alpha()
+                )
+        ));
+    }
+
+    // 【0929 delta】取当前生效的槽位适配器
+    private static ClientSlotAdapterIndex getSlotAdapter(ItemStack gunItem, AttachmentType type, Identifier attachmentId) {
+        Identifier adapterId = SlotAdapterHelper.getEffectiveSlotAdapter(gunItem, type, attachmentId);
+        return adapterId == null ? null : TimelessAPI.getClientSlotAdapterIndex(adapterId).orElse(null);
+    }
+
+    // 【0929 delta】渲染槽位适配器模型
+    private static void submitSlotAdapter(ClientSlotAdapterIndex adapter,
+                                          ItemStack gunItem,
+                                          PoseStack poseStack,
+                                          ItemDisplayContext transformType,
+                                          SubmitNodeCollector collector,
+                                          int light,
+                                          int overlay) {
+        BedrockAttachmentModel model = adapter.getAdapterModel();
+        Identifier texture = adapter.getModelTexture();
+        if (model != null && texture != null) {
+            RenderType renderType = ItemPreviewRenderContext.isPreview()
+                    ? RenderTypes.entityTranslucent(texture)
+                    : RenderTypes.entityCutout(texture);
+            model.submit(ItemStack.EMPTY, gunItem, poseStack, transformType, collector, renderType, (Identifier) null, light, overlay);
+        }
+    }
+
+    // 【0929 delta】应用挂载偏移（模型空间，16 像素 = 1 方块）
+    private static void applyMountOffset(PoseStack poseStack, Vector3f offset) {
+        if (offset != null) {
+            poseStack.translate(offset.x() / 16.0F, -offset.y() / 16.0F, offset.z() / 16.0F);
+        }
+    }
+
+    // 【0929 delta】叠加渲染配件变体（overlay mode）
+    private static void submitVariantOverlay(ClientAttachmentVariantIndex variant,
+                                             ItemStack attachmentItem,
+                                             ItemStack gunItem,
+                                             PoseStack poseStack,
+                                             ItemDisplayContext transformType,
+                                             SubmitNodeCollector collector,
+                                             int light,
+                                             int overlay) {
+        BedrockAttachmentModel model = variant.getAttachmentModel();
+        Identifier texture = variant.getModelTexture();
+        if (model != null && texture != null) {
+            RenderType renderType = ItemPreviewRenderContext.isPreview()
+                    ? RenderTypes.entityTranslucent(texture)
+                    : RenderTypes.entityCutout(texture);
+            model.submit(attachmentItem, gunItem, poseStack, transformType, collector, renderType, (Identifier) null, light, overlay);
+        }
+    }
+
+    @Override
+    public void extract(ExtractionContext context) {
+        ItemStack attachmentItem = bedrockGunModel.getCurrentAttachmentItem().get(type);
+        if (attachmentItem == null || attachmentItem.isEmpty()) {
+            return;
+        }
+        ItemStack frozenAttachment = attachmentItem.copy();
+        ItemStack frozenGun = bedrockGunModel.getCurrentGunItem().copy();
+        PoseStack frozenPose = context.poseStack();
+        ItemDisplayContext displayContext = context.displayContext();
+        int light = context.light();
+        int overlay = context.overlay();
+        context.add(collector -> {
+            PoseStack taskPose = new PoseStack();
+            taskPose.last().pose().set(frozenPose.last().pose());
+            taskPose.last().normal().set(frozenPose.last().normal());
+            submitAttachment(frozenAttachment, frozenGun, type, taskPose, displayContext, collector, light, overlay);
+        });
+    }
+
+    /**
+     * 【r44】legacy VertexConsumer 路径，在 26.2 <b>已无实际作用</b>，故清空实现。
+     *
+     * <p>它原先经 {@code bedrockGunModel.delegateRender(...)} 把配件渲染排到枪械模型之后。
+     * 但 26.2 的 {@code BedrockModel#submit}（现行路径）里，{@code delegateRenderers}
+     * 是被<b>直接清空、从不执行</b>的（该方法自带注释说明：legacy delegate renderer
+     * 无法安全地从 VertexConsumer 回调里提交嵌套 RenderType）。
+     * 唯一还会消费 delegate 的 {@code renderInto(...)} 属于旧 render 链，
+     * 而该链的入口 {@code BedrockGunModel#render} 已随本轮清理一并删除。</p>
+     *
+     * <p>配件的实际渲染走 {@link #submitAttachment}，由 {@code IFunctionalCollectorRenderer}
+     * 的 {@code submit(...)} 驱动 —— 见本类上方那个方法。</p>
+     *
+     * <p>保留空实现是因为本方法是 {@code IFunctionalRenderer} 的接口约定，
+     * 直接删掉会破坏实现关系。</p>
+     */
+    @Override
+    public void render(PoseStack poseStack, VertexConsumer vertexBuffer, ItemDisplayContext transformType, int light, int overlay) {
+        // no-op：见上方 javadoc。配件渲染统一走 submitAttachment。
+    }
+}

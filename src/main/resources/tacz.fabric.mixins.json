@@ -1,0 +1,50 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "cn.sh1rocu.tacz.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "plugin": "cn.sh1rocu.tacz.util.MixinPlugin",
+  "mixinextras": {
+    "minVersion": "0.5.0"
+  },
+  "mixins": [
+    "common.AbstractMinecartMixin",
+    "common.BundlePacketMixin",
+    "common.EntityMixin",
+    "common.LivingEntityMixin",
+    "common.LootTableMixin",
+    "common.PackRepositoryMixin",
+    "common.PersistentEntitySectionManagerMixin",
+    "common.PlayerListMixin",
+    "common.PlayerMixin",
+    "common.ReloadableResourcesMixin",
+    "common.ServerLevelMixin",
+    "common.ServerPacksSourceMixin",
+    "common.itemhandler.AbstractHorseMixin",
+    "common.itemhandler.LivingEntityMixin",
+    "common.itemhandler.PlayerMixin"
+  ],
+  "client": [
+    "accessor.BlockableEventLoopAccessor",
+    "accessor.ScreenAccessor",
+    "client.AbstractPlayerMixin",
+    "client.ClientLevelMixin",
+    "client.CreateWorldScreenMixin",
+    "client.GuiMixin",
+    "client.KeyboardHandlerMixin",
+    "client.LivingEntityRendererMixin",
+    "client.MinecraftMixin",
+    "client.MinecraftUseRestartMixin",
+    "compat.jei.JeiClientLifecycleHandlerMixin",
+    "compat.punchy.PunchyArmRendererMixin",
+    "compat.punchy.PunchyHandEquipStateMachineMixin",
+    "compat.punchy.PunchyHandRenderBobContextMixin",
+    "compat.punchy.PunchyMovementStateMachineMixin",
+    "client.MouseHandlerMixin",
+    "client.TextureAtlasMixin"
+  ],
+  "_comment": "26.2: compatibility mixins are gated by MixinPlugin using the package segment as the target mod id; Punchy mixins route TACZ viewmodels through Punchy's supported blacklist/handoff semantics.",
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

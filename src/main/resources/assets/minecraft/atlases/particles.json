@@ -1,0 +1,31 @@
+{
+  "_comment": [
+    "把 TACZ/SBM 的粒子纹理显式注册进 vanilla 粒子 atlas（minecraft:particles）。",
+    "",
+    "为什么需要这个文件：",
+    "26.2 的世界空间粒子（SnowStormParticle）继承 SingleQuadParticle，强制走粒子 atlas。",
+    "而 vanilla particles atlas 的 directory source（prefix:\"\", source:\"particle\"）",
+    "在运行时并未收录 mod 的 textures/particle/ 目录（实测 atlas.getSprite 返回 missing sprite）。",
+    "这里用 single source 显式把纹理文件注册成对应的 sprite 名（保留 particle/ 前缀），",
+    "对齐 DirectoryLister 的命名规则：tacz:textures/particle/smoke_strip.png -> tacz:particle/smoke_strip。",
+    "",
+    "为什么放在 assets/minecraft/atlases/ 下：",
+    "SpriteSourceList#load 用 ResourceManager#getResourceStack 读 minecraft:atlases/particles，",
+    "会把所有资源包里同一个 id 的 atlas 定义 addAll 合并，不会覆盖 vanilla 的 directory source。",
+    "",
+    "single 的 codec 有 resource / sprite 两个字段：读取 resource 指向的纹理文件，",
+    "注册成 sprite 指定的名字。纹理缺失时只 warn 一行，不会崩。"
+  ],
+  "sources": [
+    {
+      "type": "minecraft:single",
+      "resource": "tacz:particle/flash_strip",
+      "sprite": "tacz:particle/flash_strip"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "tacz:particle/smoke_strip",
+      "sprite": "tacz:particle/smoke_strip"
+    }
+  ]
+}

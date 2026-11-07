@@ -1,0 +1,29 @@
+{
+  "materials": [
+    {
+      "item": "#c:ingots/iron",
+      "count": 6
+    },
+    {
+      "item": "#c:gems/amethyst",
+      "count": 2
+    },
+    {
+      "item": "#c:dusts/redstone",
+      "count": 8
+    },
+    {
+      "item": "#c:dusts/glowstone",
+      "count": 6
+    },
+    {
+      "item": "minecraft:shroomlight",
+      "count": 4
+    }
+  ],
+  "result": {
+    "type": "attachment",
+    "id": "tacz:sight_infitac_fmp13"
+  },
+  "type": "tacz:gun_smith_table_crafting"
+}

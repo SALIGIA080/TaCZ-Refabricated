@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "id": "tacz",
+  "provides": [
+    "lrtactical"
+  ],
+  "version": "${version}",
+  "name": "TaCZ Refabricated",
+  "description": "A Fabric port of Timeless & Classics Guns: Zero (TACZ) for Minecraft 26.2, based on the official 1.2.0 release. Includes the full 1.2.0 feature set (scope lens effects, thermal imaging, rangefinder and fire-control displays, gun pegboards and display cases, ammo storage, ammo unloading, ADS presets, gun-pack filters, and JEI/REI queries), ported to the Minecraft 26.2 rendering and networking APIs. This is an unofficial migration of the official release and may contain unknown bugs; it is not affiliated with or endorsed by the TACZ Dev Team.",
+  "authors": [
+    "SALIGIA080",
+    "Sh1roCu"
+  ],
+  "contributors": [
+    "TACZ Dev Team (upstream Timeless & Classics Guns: Zero)",
+    "LesRaisins (LRTactical, ported portions)"
+  ],
+  "contact": {},
+  "license": "GPL3 / CC BY-NC-ND 4.0",
+  "icon": "icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "client": [
+      "cn.sh1rocu.tacz.client.TaCZFabricClient"
+    ],
+    "main": [
+      "cn.sh1rocu.tacz.TaCZFabric"
+    ],
+    "modmenu": [
+      "cn.sh1rocu.tacz.compat.modmenu.ModMenuApiImpl"
+    ],
+    "jei_mod_plugin": [
+      "com.tacz.guns.compat.jei.GunModPlugin"
+    ],
+    "rei_client": [
+      "cn.sh1rocu.tacz.compat.rei.REIClientPlugin"
+    ],
+    "rei_common": [
+      "cn.sh1rocu.tacz.compat.rei.REIPlugin"
+    ]
+  },
+  "custom": {
+    "loom:injected_interfaces": {
+      "net/minecraft/world/entity/LivingEntity": [
+        "cn/sh1rocu/tacz/api/mixin/ItemHandlerCapability"
+      ]
+    }
+  },
+  "mixins": [
+    "tacz.mixins.json",
+    "tacz.fabric.mixins.json",
+    "tacz.iris.mixins.json",
+    "tacz.voxy.mixins.json",
+    "tacz.carryon.mixins.json",
+    "lrtactical.mixins.json"
+  ],
+  "accessWidener": "tacz.accesswidener",
+  "depends": {
+    "fabricloader": ">=0.19.3",
+    "fabric-api": "*",
+    "minecraft": "26.2",
+    "java": ">=25",
+    "forgeconfigapiport": ">=26.2.1",
+    "simplebedrockmodel": "*"
+  },
+  "suggests": {
+    "carryon": ">=2.11.0"
+  }
+}

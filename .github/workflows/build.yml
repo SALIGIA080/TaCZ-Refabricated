@@ -1,0 +1,55 @@
+name: build
+
+on:
+  push:
+    branches: [ main, '26.2' ]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Mixin config integrity
+        run: |
+          python3 - <<'EOF'
+          import json, glob, os, sys
+          bad = []
+          for cfg in glob.glob('src/main/resources/*mixins*.json'):
+              d = json.load(open(cfg))
+              pkg = d.get('package', '').replace('.', '/')
+              for section in ('mixins', 'client', 'server'):
+                  for m in d.get(section, []):
+                      p = 'src/main/java/' + pkg + '/' + m.replace('.', '/') + '.java'
+                      if not os.path.exists(p):
+                          bad.append(f'{cfg}: {m} -> {p} 不存在')
+          for b in bad:
+              print('::error::' + b)
+          sys.exit(1 if bad else 0)
+          EOF
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Full build
+        run: ./gradlew build --console=plain --stacktrace --no-daemon
+
+      - name: Upload jars
+        uses: actions/upload-artifact@v4
+        with:
+          name: TACZ-Refabricated-${{ github.sha }}
+          path: |
+            build/libs/*.jar
+            !build/libs/*-sources.jar
+          retention-days: 14
+          if-no-files-found: error

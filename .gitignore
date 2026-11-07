@@ -1,0 +1,21 @@
+# Gradle 构建缓存（本机生成，含 loom-cache 里的 minecraft jar 等大文件，不应进版本库）
+.gradle/
+
+# Gradle 构建产物目录
+build/
+
+# IDE 配置（含本机绝对路径，不入库）
+.idea/
+
+# 内嵌 SBM 库 jar：SBM 未发布到公共 Maven，随仓库提交以保证 clone 后可复现构建。
+# 忽略 libs/ 下所有内容，但放行 simplebedrockmodel 开头的发布 jar（白名单用通配，
+# 以免 SBM 版本升级、jar 文件名变化时漏提交）。
+/libs/*
+!/libs/simplebedrockmodel-*.jar
+
+# 本机构建脚本（含本机 JDK 路径 / 代理 / 绝对路径，严禁入库）
+build.sh
+build-log.txt
+
+# 本机工作目录（工作笔记/记忆，不入库）
+.workbuddy/
