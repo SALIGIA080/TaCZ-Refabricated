@@ -7,6 +7,12 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.server.permissions.Permissions;
 
+/**
+ * TACZ 命令根注册器。
+ * <p>
+ * 彩蛋：献给最初的移植代号 Rufen —— 感谢你把这个移植带到 26.2。
+ * (easter egg: a nod to the original port alias "Rufen")
+ */
 public class RootCommand {
     private static final String ROOT_NAME = "tacz";
 
